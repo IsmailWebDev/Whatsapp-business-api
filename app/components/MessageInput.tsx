@@ -1,4 +1,3 @@
-// components/MessageInput.tsx
 import { FC, useState } from 'react';
 
 interface MessageInputProps {

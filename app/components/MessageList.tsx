@@ -1,4 +1,3 @@
-// components/MessageList.tsx
 import { FC } from 'react';
 
 interface Message {
@@ -14,7 +13,7 @@ interface MessageListProps {
 
 const MessageList: FC<MessageListProps> = ({ messages }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4">
+    <div className="flex-1 p-4">
       {messages.map((message, index) => (
         <div
           key={index}

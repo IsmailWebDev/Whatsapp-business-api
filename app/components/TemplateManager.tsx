@@ -10,7 +10,6 @@ type TemplateCategory = 'MARKETING' | 'UTILITY';
 
 const TemplateManager: FC<TemplateManagerProps> = ({
   onTemplateRegistered,
-  templates,
 }) => {
   const [templateName, setTemplateName] = useState('');
   const [templateBody, setTemplateBody] = useState('');

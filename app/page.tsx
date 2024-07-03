@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   useQuery,
   useMutation,
@@ -34,7 +34,6 @@ export default function Home() {
     queryKey: ['messages'],
     queryFn: fetchMessages,
     refetchInterval: 1000,
-    refetchIntervalInBackground: true,
     staleTime: 0,
   });
 
@@ -52,7 +51,6 @@ export default function Home() {
         )
       ),
     onSuccess: (responseData, sentText) => {
-      console.log(responseData);
       queryClient.setQueryData(
         ['messages'],
         (oldMessages: any[] = []) => [
@@ -67,20 +65,13 @@ export default function Home() {
   });
 
   const sendTemplateMutation = useMutation({
-    mutationFn: ({
-      templateName,
-      parameters,
-    }: {
-      templateName: string;
-      parameters: any[];
-    }) =>
+    mutationFn: ({ templateName }: { templateName: string }) =>
       Promise.all(
         selectedRecipients.map((recipient) =>
-          sendTemplate(recipient, templateName, parameters)
+          sendTemplate(recipient, templateName)
         )
       ),
     onSuccess: (responseData, { templateName }) => {
-      console.log(responseData);
       queryClient.setQueryData(
         ['messages'],
         (oldMessages: any[] = []) => [
@@ -102,12 +93,9 @@ export default function Home() {
     }
   };
 
-  const handleSendTemplate = (
-    templateName: string,
-    parameters: any[]
-  ) => {
+  const handleSendTemplate = (templateName: string) => {
     if (selectedRecipients.length > 0) {
-      sendTemplateMutation.mutate({ templateName, parameters });
+      sendTemplateMutation.mutate({ templateName });
     } else {
       alert('Please select at least one recipient.');
     }

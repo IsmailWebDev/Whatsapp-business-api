@@ -1,15 +1,15 @@
-const API_URL = `${process.env.API_URL}/messages`;
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_API_URL;
+const WEBHOOK_API_URL = process.env.NEXT_PUBLIC_WEBHOOK_API_URL;
+const WP_BUSINESS_ID = process.env.NEXT_PUBLIC_WP_BUSINESS_ID;
+const NUMBER_ID = process.env.NEXT_PUBLIC_NUMBER_ID;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_WP_TOKEN;
 
 export async function fetchMessages() {
-  const response = await fetch(
-    `https://dot-languid-approach.glitch.me/messages`,
-    {
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-      },
-    }
-  );
+  const response = await fetch(`${WEBHOOK_API_URL}/messages`, {
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+    },
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch messages');
   }
@@ -17,35 +17,29 @@ export async function fetchMessages() {
 }
 
 export async function sendMessage(to: string, text: string) {
-  await fetch(
-    `https://graph.facebook.com/v19.0/371843412675509/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: to,
-        type: 'text',
-        text: { body: text },
-      }),
-    }
-  );
-  const response = await fetch(
-    `https://dot-languid-approach.glitch.me/messages`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: { body: text },
-      }),
-    }
-  );
+  await fetch(`${WP_API_URL}/${NUMBER_ID}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to: to,
+      type: 'text',
+      text: { body: text },
+    }),
+  });
+  const response = await fetch(`${WEBHOOK_API_URL}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      text: { body: text },
+    }),
+  });
   if (!response.ok) {
     throw new Error('Failed to send message');
   }
@@ -53,7 +47,7 @@ export async function sendMessage(to: string, text: string) {
 }
 export async function fetchTemplates() {
   const response = await fetch(
-    `https://graph.facebook.com/v19.0/337588036111090/message_templates`,
+    `${WP_API_URL}/${WP_BUSINESS_ID}/message_templates`,
     {
       headers: {
         Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -69,13 +63,9 @@ export async function fetchTemplates() {
   return data.data;
 }
 
-export async function sendTemplate(
-  to: string,
-  templateName: string,
-  parameters: any[]
-) {
+export async function sendTemplate(to: string, templateName: string) {
   const response = await fetch(
-    `https://graph.facebook.com/v19.0/371843412675509/messages`,
+    `${WP_API_URL}/${NUMBER_ID}/messages`,
     {
       method: 'POST',
       headers: {
@@ -92,21 +82,36 @@ export async function sendTemplate(
           components: [
             {
               type: 'body',
-              parameters: parameters,
             },
           ],
         },
       }),
     }
   );
-  await fetch(`https://dot-languid-approach.glitch.me/messages`, {
+  const templates = await fetchTemplates();
+  const template = await templates.find(
+    (item: any) => item.name === templateName
+  );
+  if (!template) {
+    return null;
+  }
+
+  const bodyComponent = template.components.find(
+    (component: any) => component.type === 'BODY'
+  );
+
+  if (!bodyComponent) {
+    return null;
+  }
+
+  await fetch(`${WEBHOOK_API_URL}/messages`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      text: { body: templateName },
+      text: { body: bodyComponent.text },
     }),
   });
   if (!response.ok) {
@@ -121,7 +126,7 @@ export async function registerTemplate(
   category: string
 ) {
   const response = await fetch(
-    `https://graph.facebook.com/v19.0/337588036111090/message_templates`,
+    `${WP_API_URL}/${WP_BUSINESS_ID}/message_templates`,
     {
       method: 'POST',
       headers: {

@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 
 interface TemplateSenderProps {
-  onSendTemplate: (templateName: string, parameters: any[]) => void;
+  onSendTemplate: (templateName: string) => void;
   templates: Array<{ name: string; category: string }>;
 }
 
@@ -10,28 +10,13 @@ const TemplateSender: FC<TemplateSenderProps> = ({
   templates,
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [parameters, setParameters] = useState(['']);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedTemplate) {
-      onSendTemplate(
-        selectedTemplate,
-        parameters.filter((p) => p.trim() !== '')
-      );
+      onSendTemplate(selectedTemplate);
       setSelectedTemplate('');
-      setParameters(['']);
     }
-  };
-
-  const addParameter = () => {
-    setParameters([...parameters, '']);
-  };
-
-  const updateParameter = (index: number, value: string) => {
-    const newParameters = [...parameters];
-    newParameters[index] = value;
-    setParameters(newParameters);
   };
 
   return (
@@ -49,26 +34,6 @@ const TemplateSender: FC<TemplateSenderProps> = ({
             </option>
           ))}
         </select>
-        {selectedTemplate &&
-          parameters.map((param, index) => (
-            <input
-              key={index}
-              type="text"
-              value={param}
-              onChange={(e) => updateParameter(index, e.target.value)}
-              placeholder={`Parameter ${index + 1}`}
-              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-500"
-            />
-          ))}
-        {selectedTemplate && (
-          <button
-            type="button"
-            onClick={addParameter}
-            className="bg-gray-200 text-gray-800 p-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            Add Parameter
-          </button>
-        )}
         <button
           type="submit"
           className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
